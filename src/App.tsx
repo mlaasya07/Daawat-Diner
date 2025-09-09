@@ -43,7 +43,7 @@ function App() {
           <div className="flex items-center justify-center space-x-3">
             <Utensils className="w-8 h-8 text-[#BB4430]" />
             <h1 className="text-3xl md:text-4xl font-bold text-[#F3DFA2] tracking-wide">
-              Chatori Diner
+              دعوت Diner
             </h1>
             <Utensils className="w-8 h-8 text-[#BB4430]" />
           </div>
@@ -70,7 +70,7 @@ function App() {
       <footer className="bg-[#231F20] border-t-2 border-[#157A6E] py-6 mt-12">
         <div className="container mx-auto px-4 text-center">
           <p className="text-[#F3DFA2]">
-            © 2025 Chatori Diner. Bringing India's flavors to your table.
+            © 2025 دعوت Diner. Bringing India's flavors to your table.
           </p>
         </div>
       </footer>

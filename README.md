@@ -1,1 +1,1 @@
-Chatori-Diner
+دعوت-Diner
