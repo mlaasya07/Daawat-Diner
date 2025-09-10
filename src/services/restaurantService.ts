@@ -108,38 +108,26 @@ export const findRestaurants = async (formData: FormData): Promise<Restaurant[]>
     const location = geocodeResponse.data.features[0];
     const { lat, lon } = location.properties;
     
-    // Search for restaurants using Places API
+    // Search for restaurants using Places API with specific cuisine queries
     const restaurants: Restaurant[] = [];
     
     for (const cuisine of formData.cuisines) {
-      const cacheKey = getCacheKey(formData);
-      const cached = cache.get(cacheKey);
-      
-      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-        // Use cached data
-        const cachedRestaurants = cached.data.slice(0, 5).map(place => transformToRestaurant(place, formData.cuisines));
-        restaurants.push(...cachedRestaurants);
-        continue;
-      }
-      
       const searchQuery = `${cuisine} restaurant`;
-      const placesUrl = `${GEOAPIFY_BASE_URL}?categories=catering.restaurant&filter=circle:${lon},${lat},5000&bias=proximity:${lon},${lat}&text=${encodeURIComponent(searchQuery)}&apiKey=${GEOAPIFY_API_KEY}&limit=10`;
+      const placesUrl = `${GEOAPIFY_BASE_URL}?categories=catering.restaurant&filter=circle:${lon},${lat},5000&bias=proximity:${lon},${lat}&text=${encodeURIComponent(searchQuery)}&apiKey=${GEOAPIFY_API_KEY}&limit=15`;
       
-      const response = await axios.get(placesUrl);
-      
-      if (response.data.features) {
-        // Cache the results
-        cache.set(cacheKey, {
-          data: response.data.features,
-          timestamp: Date.now()
-        });
+      try {
+        const response = await axios.get(placesUrl);
         
-        const cuisineRestaurants = response.data.features
-          .filter((place: any) => isValidIndianLocation(place.properties.formatted || ''))
-          .slice(0, 5)
-          .map((place: any) => transformToRestaurant(place, formData.cuisines));
-        
-        restaurants.push(...cuisineRestaurants);
+        if (response.data.features) {
+          const cuisineRestaurants = response.data.features
+            .filter((place: any) => isValidIndianLocation(place.properties.formatted || ''))
+            .slice(0, 3) // Get 3 restaurants per cuisine
+            .map((place: any) => transformToRestaurant(place, [cuisine])); // Pass single cuisine
+          
+          restaurants.push(...cuisineRestaurants);
+        }
+      } catch (error) {
+        console.error(`Error fetching ${cuisine} restaurants:`, error);
       }
     }
     
@@ -168,13 +156,13 @@ export const refreshRestaurants = async (): Promise<Restaurant[]> => {
   // Get starred restaurants
   const starredRestaurants = currentSearchResults.filter(r => r.isStarred);
   
-  // If all 5 are starred, return empty array (will trigger warning)
+  // If all 5 are starred, return current results (no refresh possible)
   if (starredRestaurants.length >= 5) {
-    return [];
+    return currentSearchResults;
   }
   
   try {
-    // Add current restaurant IDs to excluded list
+    // Add current non-starred restaurant IDs to excluded list
     currentSearchResults.forEach(r => {
       if (!r.isStarred) {
         excludedRestaurantIds.add(r.id);
@@ -196,25 +184,30 @@ export const refreshRestaurants = async (): Promise<Restaurant[]> => {
     const newRestaurants: Restaurant[] = [];
     const neededCount = 5 - starredRestaurants.length;
     
+    // Search for new restaurants for each cuisine
     for (const cuisine of currentFormData.cuisines) {
       if (newRestaurants.length >= neededCount) break;
       
       const searchQuery = `${cuisine} restaurant`;
       const placesUrl = `${GEOAPIFY_BASE_URL}?categories=catering.restaurant&filter=circle:${lon},${lat},5000&bias=proximity:${lon},${lat}&text=${encodeURIComponent(searchQuery)}&apiKey=${GEOAPIFY_API_KEY}&limit=20`;
       
-      const response = await axios.get(placesUrl);
-      
-      if (response.data.features) {
-        const cuisineRestaurants = response.data.features
-          .filter((place: any) => {
-            const restaurantId = place.properties.place_id || `${place.properties.name}-${place.properties.lat}-${place.properties.lon}`;
-            return isValidIndianLocation(place.properties.formatted || '') && 
-                   !excludedRestaurantIds.has(restaurantId);
-          })
-          .slice(0, neededCount - newRestaurants.length)
-          .map((place: any) => transformToRestaurant(place, currentFormData!.cuisines));
+      try {
+        const response = await axios.get(placesUrl);
         
-        newRestaurants.push(...cuisineRestaurants);
+        if (response.data.features) {
+          const cuisineRestaurants = response.data.features
+            .filter((place: any) => {
+              const restaurantId = place.properties.place_id || `${place.properties.name}-${place.properties.lat}-${place.properties.lon}`;
+              return isValidIndianLocation(place.properties.formatted || '') && 
+                     !excludedRestaurantIds.has(restaurantId);
+            })
+            .slice(0, Math.ceil(neededCount / currentFormData.cuisines.length))
+            .map((place: any) => transformToRestaurant(place, [cuisine]));
+          
+          newRestaurants.push(...cuisineRestaurants);
+        }
+      } catch (error) {
+        console.error(`Error fetching new ${cuisine} restaurants:`, error);
       }
     }
     
@@ -224,12 +217,23 @@ export const refreshRestaurants = async (): Promise<Restaurant[]> => {
       ...newRestaurants.slice(0, neededCount)
     ];
     
-    currentSearchResults = refreshedResults;
-    return refreshedResults;
+    // If we don't have enough new restaurants, fill with fallback
+    if (refreshedResults.length < 5) {
+      const fallbackRestaurants = getFallbackRestaurants(currentFormData);
+      const additionalNeeded = 5 - refreshedResults.length;
+      const fallbackFiltered = fallbackRestaurants
+        .filter(r => !refreshedResults.some(existing => existing.name === r.name))
+        .slice(0, additionalNeeded);
+      
+      refreshedResults.push(...fallbackFiltered);
+    }
+    
+    currentSearchResults = refreshedResults.slice(0, 5);
+    return currentSearchResults;
     
   } catch (error) {
     console.error('Error refreshing restaurants:', error);
-    return starredRestaurants; // Return only starred restaurants on error
+    return currentSearchResults; // Return current results on error
   }
 };
 
@@ -257,7 +261,7 @@ const transformToRestaurant = (place: any, cuisines: string[]): Restaurant => {
     distance: Math.round((props.distance || 1000) / 1000 * 10) / 10, // Convert to km
     rating: props.rating || (3.5 + Math.random() * 1.5), // Random rating if not available
     priceLevel: Math.ceil(Math.random() * 3), // Random price level 1-3
-    cuisine: cuisines,
+    cuisine: cuisines, // Use the specific cuisine passed in
     phone: props.contact?.phone,
     website: props.contact?.website,
     menu: generateMenu(cuisines, props.name || 'Restaurant', Math.ceil(Math.random() * 3)),
@@ -267,33 +271,42 @@ const transformToRestaurant = (place: any, cuisines: string[]): Restaurant => {
 };
 
 const getFallbackRestaurants = (formData: FormData): Restaurant[] => {
-  // Fallback demo restaurants for when API fails
-  const demoRestaurants = [
-    {
-      id: 'demo-1',
-      name: 'Spice Garden',
-      address: `Near ${formData.location}`,
-      distance: 1.2,
-      rating: 4.5,
-      priceLevel: 2,
-      cuisine: formData.cuisines,
-      menu: generateMenu(formData.cuisines, 'Spice Garden', 2),
-      coords: { lat: 0, lng: 0 },
-      isStarred: false
-    },
-    {
-      id: 'demo-2',
-      name: 'Royal Kitchen',
-      address: `Near ${formData.location}`,
-      distance: 2.1,
-      rating: 4.3,
-      priceLevel: 3,
-      cuisine: formData.cuisines,
-      menu: generateMenu(formData.cuisines, 'Royal Kitchen', 3),
-      coords: { lat: 0, lng: 0 },
-      isStarred: false
-    }
+  // Create fallback restaurants that match the selected cuisines
+  const fallbackData = [
+    { name: 'Spice Garden', cuisineType: 'Indian' },
+    { name: 'Royal Kitchen', cuisineType: 'Indian' },
+    { name: 'Dragon Palace', cuisineType: 'Chinese' },
+    { name: 'Pasta Corner', cuisineType: 'Italian' },
+    { name: 'South Delights', cuisineType: 'South Indian' },
+    { name: 'Punjabi Dhaba', cuisineType: 'Punjabi' },
+    { name: 'Bengal Flavors', cuisineType: 'Bengali' },
+    { name: 'Thai Garden', cuisineType: 'Thai' }
   ];
+  
+  const matchingRestaurants = fallbackData
+    .filter(restaurant => 
+      formData.cuisines.some(cuisine => 
+        restaurant.cuisineType.toLowerCase().includes(cuisine.toLowerCase()) ||
+        cuisine.toLowerCase().includes(restaurant.cuisineType.toLowerCase())
+      )
+    )
+    .slice(0, 5);
+  
+  // If no matches, use first 5
+  const restaurantsToUse = matchingRestaurants.length > 0 ? matchingRestaurants : fallbackData.slice(0, 5);
+  
+  const demoRestaurants = restaurantsToUse.map((restaurant, index) => ({
+    id: `demo-${index + 1}`,
+    name: restaurant.name,
+    address: `Near ${formData.location}`,
+    distance: 1.2 + (index * 0.5),
+    rating: 4.0 + (Math.random() * 1.0),
+    priceLevel: Math.ceil(Math.random() * 3),
+    cuisine: [restaurant.cuisineType],
+    menu: generateMenu([restaurant.cuisineType], restaurant.name, Math.ceil(Math.random() * 3)),
+    coords: { lat: 0, lng: 0 },
+    isStarred: false
+  }));
   
   currentSearchResults = demoRestaurants;
   return demoRestaurants;
