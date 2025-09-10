@@ -30,4 +30,5 @@ export interface Restaurant {
   website?: string;
   menu: MenuItem[];
   coords: { lat: number; lng: number };
+  isStarred?: boolean;
 }

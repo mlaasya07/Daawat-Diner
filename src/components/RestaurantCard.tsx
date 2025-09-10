@@ -5,9 +5,10 @@ import { Restaurant, FormData, MenuItem } from '../types';
 interface Props {
   restaurant: Restaurant;
   formData: FormData;
+  onToggleStar: (restaurantId: string) => void;
 }
 
-export default function RestaurantCard({ restaurant, formData }: Props) {
+export default function RestaurantCard({ restaurant, formData, onToggleStar }: Props) {
   const [expanded, setExpanded] = useState(false);
   
   // Filter menu items based on preferences
@@ -87,6 +88,18 @@ export default function RestaurantCard({ restaurant, formData }: Props) {
           </div>
           
           <div className="flex flex-col space-y-2">
+            <button
+              onClick={() => onToggleStar(restaurant.id)}
+              className={`p-2 rounded-lg transition-colors ${
+                restaurant.isStarred
+                  ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                  : 'bg-[#2A2627] border border-[#157A6E] hover:border-yellow-500 text-[#157A6E] hover:text-yellow-500'
+              }`}
+              title={restaurant.isStarred ? 'Remove from starred' : 'Star this restaurant'}
+            >
+              <Star className={`w-4 h-4 ${restaurant.isStarred ? 'fill-current' : ''}`} />
+            </button>
+            
             {estimatedCost > 0 && (
               <div className="bg-[#157A6E] text-[#F3DFA2] px-4 py-2 rounded-lg text-center">
                 <div className="text-sm">Estimated Total</div>

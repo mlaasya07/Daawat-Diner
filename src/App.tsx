@@ -3,7 +3,7 @@ import { Utensils } from 'lucide-react';
 import RestaurantForm from './components/RestaurantForm';
 import RestaurantResults from './components/RestaurantResults';
 import { FormData, Restaurant } from './types';
-import { findRestaurants } from './services/restaurantService';
+import { findRestaurants, toggleStarRestaurant } from './services/restaurantService';
 
 function App() {
   const [results, setResults] = useState<Restaurant[]>([]);
@@ -15,9 +15,7 @@ function App() {
     setFormData(data);
     
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      const restaurants = findRestaurants(data);
+      const restaurants = await findRestaurants(data);
       setResults(restaurants);
     } catch (error) {
       console.error('Error finding restaurants:', error);
@@ -26,8 +24,13 @@ function App() {
     }
   };
 
-  const handleRefreshResults = (newRestaurants: Restaurant[]) => {
-    setResults(prevResults => [...prevResults, ...newRestaurants]);
+  const handleRefreshResults = (restaurants: Restaurant[]) => {
+    setResults(restaurants);
+  };
+
+  const handleToggleStar = (restaurantId: string) => {
+    const updatedResults = toggleStarRestaurant(restaurantId);
+    setResults([...updatedResults]);
   };
 
   const handleNewSearch = () => {
@@ -62,6 +65,7 @@ function App() {
             formData={formData!}
             onNewSearch={handleNewSearch}
             onRefreshResults={handleRefreshResults}
+            onToggleStar={handleToggleStar}
           />
         )}
       </main>

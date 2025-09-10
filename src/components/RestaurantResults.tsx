@@ -1,25 +1,35 @@
-import React from 'react';
-import { ArrowLeft, MapPin, RefreshCw } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, MapPin, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Restaurant, FormData } from '../types';
 import RestaurantCard from './RestaurantCard';
-import { refreshRestaurants, hasMoreRestaurants } from '../services/restaurantService';
+import { refreshRestaurants, getStarredCount } from '../services/restaurantService';
 
 interface Props {
   restaurants: Restaurant[];
   formData: FormData;
   onNewSearch: () => void;
-  onRefreshResults: (newRestaurants: Restaurant[]) => void;
+  onRefreshResults: (restaurants: Restaurant[]) => void;
+  onToggleStar: (restaurantId: string) => void;
 }
 
-export default function RestaurantResults({ restaurants, formData, onNewSearch, onRefreshResults }: Props) {
+export default function RestaurantResults({ restaurants, formData, onNewSearch, onRefreshResults, onToggleStar }: Props) {
+  const [refreshing, setRefreshing] = useState(false);
   const totalBudget = formData.budget ? formData.budget * formData.numPeople : undefined;
   const hasMinors = formData.ages.some(age => age < 18);
-  const canRefresh = hasMoreRestaurants();
+  const starredCount = getStarredCount();
+  const allStarred = starredCount >= 5;
 
   const handleRefresh = async () => {
-    const newRestaurants = refreshRestaurants();
-    if (newRestaurants.length > 0) {
-      onRefreshResults(newRestaurants);
+    if (allStarred) return;
+    
+    setRefreshing(true);
+    try {
+      const refreshedRestaurants = await refreshRestaurants();
+      onRefreshResults(refreshedRestaurants);
+    } catch (error) {
+      console.error('Error refreshing restaurants:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -30,7 +40,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2">
-              Found {restaurants.length} restaurants in {formData.location}
+              Top 5 restaurants in {formData.location}
             </h2>
             <div className="flex items-center space-x-6 text-[#157A6E] text-sm">
               <span>👥 {formData.numPeople} people</span>
@@ -38,6 +48,9 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
               <span>🥗 {formData.diet}</span>
               {formData.budget && (
                 <span>💰 ₹{formData.budget}/person (₹{totalBudget} total)</span>
+              )}
+              {starredCount > 0 && (
+                <span>⭐ {starredCount} starred</span>
               )}
             </div>
             {hasMinors && (
@@ -47,15 +60,21 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
             )}
           </div>
           <div className="flex space-x-3">
-            {canRefresh && (
-              <button
-                onClick={handleRefresh}
-                className="bg-[#BB4430] hover:bg-[#A03A28] text-[#F3DFA2] px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Find More</span>
-              </button>
-            )}
+            <button
+              onClick={handleRefresh}
+              disabled={allStarred || refreshing}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                allStarred
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : refreshing
+                  ? 'bg-[#BB4430] text-[#F3DFA2] cursor-wait'
+                  : 'bg-[#BB4430] hover:bg-[#A03A28] text-[#F3DFA2]'
+              }`}
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
+            </button>
+            
             <button
               onClick={onNewSearch}
               className="bg-[#157A6E] hover:bg-[#1A6B60] text-[#F3DFA2] px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
@@ -65,6 +84,15 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
             </button>
           </div>
         </div>
+        
+        {allStarred && (
+          <div className="mt-4 p-3 bg-yellow-900 border border-yellow-600 rounded-lg flex items-center space-x-2">
+            <AlertTriangle className="w-5 h-5 text-yellow-400" />
+            <span className="text-yellow-200 text-sm">
+              All searches are starred. Try removing one or more to refresh.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Results */}
@@ -91,6 +119,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
               key={restaurant.id}
               restaurant={restaurant}
               formData={formData}
+              onToggleStar={onToggleStar}
             />
           ))}
         </div>
