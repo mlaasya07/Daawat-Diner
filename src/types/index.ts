@@ -4,7 +4,8 @@ export interface FormData {
   cuisines: string[];
   diet: 'Veg' | 'Non-Veg' | 'Both';
   budget?: number;
-  location: string;
+  city: string;
+  area: string;
 }
 
 export interface MenuItem {

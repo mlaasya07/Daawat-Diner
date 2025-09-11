@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, MapPin, Users, Calendar, Utensils, DollarSign } from 'lucide-react';
 import { FormData } from '../types';
+import { getCitiesArray, getAreasForCity } from '../data/locations';
+import NumberKeypad from './NumberKeypad';
 
 interface Props {
   onSearch: (data: FormData) => void;
@@ -12,15 +14,6 @@ const cuisineOptions = [
   'Punjabi', 'Bengali', 'Rajasthani', 'Gujarati', 'Thai', 'Mexican'
 ];
 
-const indianCities = [
-  'Mumbai, Maharashtra', 'Delhi, Delhi', 'Bangalore, Karnataka',
-  'Hyderabad, Telangana', 'Chennai, Tamil Nadu', 'Kolkata, West Bengal',
-  'Pune, Maharashtra', 'Ahmedabad, Gujarat', 'Jaipur, Rajasthan',
-  'Surat, Gujarat', 'Lucknow, Uttar Pradesh', 'Kanpur, Uttar Pradesh',
-  'Nagpur, Maharashtra', 'Indore, Madhya Pradesh', 'Thane, Maharashtra',
-  'Kukatpally, Hyderabad', 'Koramangala, Bangalore', 'Connaught Place, Delhi'
-];
-
 export default function RestaurantForm({ onSearch, loading }: Props) {
   const [formData, setFormData] = useState<FormData>({
     numPeople: 1,
@@ -28,9 +21,25 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
     cuisines: [],
     diet: 'Both',
     budget: undefined,
-    location: ''
+    city: '',
+    area: ''
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [keypadState, setKeypadState] = useState<{
+    show: boolean;
+    field: string;
+    index?: number;
+    position: { x: number; y: number };
+    value: string;
+  }>({
+    show: false,
+    field: '',
+    position: { x: 0, y: 0 },
+    value: ''
+  });
+
+  const cities = getCitiesArray();
+  const areas = formData.city ? getAreasForCity(formData.city) : [];
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -51,8 +60,12 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
       newErrors.cuisines = 'Please select at least one cuisine';
     }
 
-    if (!formData.location.trim()) {
-      newErrors.location = 'Location is required';
+    if (!formData.city.trim()) {
+      newErrors.city = 'City is required';
+    }
+
+    if (!formData.area.trim()) {
+      newErrors.area = 'Area is required';
     }
 
     if (formData.budget && formData.budget <= 0) {
@@ -73,12 +86,10 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   const handleNumPeopleChange = (value: number) => {
     const newAges = [...formData.ages];
     if (value > formData.numPeople) {
-      // Add default ages for new people
       for (let i = formData.numPeople; i < value; i++) {
         newAges.push(25);
       }
     } else if (value < formData.numPeople) {
-      // Remove excess ages
       newAges.splice(value);
     }
     
@@ -109,6 +120,64 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
     });
   };
 
+  const handleCityChange = (city: string) => {
+    setFormData({
+      ...formData,
+      city,
+      area: '' // Reset area when city changes
+    });
+  };
+
+  const showKeypad = (event: React.MouseEvent, field: string, index?: number) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    let currentValue = '';
+    
+    if (field === 'numPeople') {
+      currentValue = formData.numPeople.toString();
+    } else if (field === 'age' && index !== undefined) {
+      currentValue = formData.ages[index].toString();
+    } else if (field === 'budget') {
+      currentValue = formData.budget?.toString() || '';
+    }
+
+    setKeypadState({
+      show: true,
+      field,
+      index,
+      position: {
+        x: rect.left + rect.width / 2,
+        y: rect.top
+      },
+      value: currentValue
+    });
+  };
+
+  const handleKeypadChange = (value: string) => {
+    setKeypadState(prev => ({ ...prev, value }));
+  };
+
+  const handleKeypadClose = () => {
+    const numValue = parseInt(keypadState.value) || 0;
+    
+    if (keypadState.field === 'numPeople') {
+      handleNumPeopleChange(Math.max(1, numValue));
+    } else if (keypadState.field === 'age' && keypadState.index !== undefined) {
+      handleAgeChange(keypadState.index, Math.max(1, Math.min(120, numValue)));
+    } else if (keypadState.field === 'budget') {
+      setFormData({
+        ...formData,
+        budget: numValue > 0 ? numValue : undefined
+      });
+    }
+
+    setKeypadState({
+      show: false,
+      field: '',
+      position: { x: 0, y: 0 },
+      value: ''
+    });
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-8 shadow-2xl">
@@ -128,14 +197,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               <Users className="w-5 h-5 text-[#BB4430]" />
               <span>Number of People *</span>
             </label>
-            <input
-              type="number"
-              min="1"
-              max="20"
-              value={formData.numPeople}
-              onChange={(e) => handleNumPeopleChange(parseInt(e.target.value) || 1)}
-              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
-            />
+            <button
+              type="button"
+              onClick={(e) => showKeypad(e, 'numPeople')}
+              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
+            >
+              {formData.numPeople}
+            </button>
             {errors.numPeople && (
               <p className="text-red-400 text-sm mt-1">{errors.numPeople}</p>
             )}
@@ -153,14 +221,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
                   <label className="text-sm text-[#157A6E] mb-1 block">
                     Person {index + 1}
                   </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="120"
-                    value={age}
-                    onChange={(e) => handleAgeChange(index, parseInt(e.target.value) || 1)}
-                    className="w-full p-2 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
-                  />
+                  <button
+                    type="button"
+                    onClick={(e) => showKeypad(e, 'age', index)}
+                    className="w-full p-2 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors hover:border-[#BB4430]"
+                  >
+                    {age}
+                  </button>
                 </div>
               ))}
             </div>
@@ -225,40 +292,60 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               <DollarSign className="w-5 h-5 text-[#BB4430]" />
               <span>Budget per Person (₹) (Optional)</span>
             </label>
-            <input
-              type="number"
-              min="0"
-              placeholder="e.g., 500"
-              value={formData.budget || ''}
-              onChange={(e) => setFormData({
-                ...formData,
-                budget: e.target.value ? parseInt(e.target.value) : undefined
-              })}
-              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors placeholder-[#157A6E]"
-            />
+            <button
+              type="button"
+              onClick={(e) => showKeypad(e, 'budget')}
+              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
+            >
+              {formData.budget || 'Enter budget...'}
+            </button>
             {errors.budget && (
               <p className="text-red-400 text-sm mt-1">{errors.budget}</p>
             )}
           </div>
 
-          {/* Location */}
+          {/* City Selection */}
           <div>
             <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
               <MapPin className="w-5 h-5 text-[#BB4430]" />
-              <span>Location *</span>
+              <span>City *</span>
             </label>
             <select
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              value={formData.city}
+              onChange={(e) => handleCityChange(e.target.value)}
               className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
             >
-              <option value="" className="text-[#157A6E]">Select your location</option>
-              {indianCities.map((city) => (
+              <option value="" className="text-[#157A6E]">Select your city</option>
+              {cities.map((city) => (
                 <option key={city} value={city}>{city}</option>
               ))}
             </select>
-            {errors.location && (
-              <p className="text-red-400 text-sm mt-1">{errors.location}</p>
+            {errors.city && (
+              <p className="text-red-400 text-sm mt-1">{errors.city}</p>
+            )}
+          </div>
+
+          {/* Area Selection */}
+          <div>
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+              <MapPin className="w-5 h-5 text-[#BB4430]" />
+              <span>Area *</span>
+            </label>
+            <select
+              value={formData.area}
+              onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+              disabled={!formData.city}
+              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <option value="" className="text-[#157A6E]">
+                {formData.city ? 'Select your area' : 'Select city first'}
+              </option>
+              {areas.map((area) => (
+                <option key={area} value={area}>{area}</option>
+              ))}
+            </select>
+            {errors.area && (
+              <p className="text-red-400 text-sm mt-1">{errors.area}</p>
             )}
           </div>
 
@@ -282,6 +369,17 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
           </button>
         </form>
       </div>
+
+      {/* Number Keypad */}
+      {keypadState.show && (
+        <NumberKeypad
+          value={keypadState.value}
+          onChange={handleKeypadChange}
+          onClose={handleKeypadClose}
+          position={keypadState.position}
+          maxLength={keypadState.field === 'budget' ? 5 : 3}
+        />
+      )}
     </div>
   );
 }

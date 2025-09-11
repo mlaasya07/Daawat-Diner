@@ -44,6 +44,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
             </h2>
             <div className="flex items-center space-x-6 text-[#157A6E] text-sm">
               <span>👥 {formData.numPeople} people</span>
+              <span>📍 {formData.area}, {formData.city}</span>
               <span>🍽️ {formData.cuisines.join(', ')}</span>
               <span>🥗 {formData.diet}</span>
               {formData.budget && (
