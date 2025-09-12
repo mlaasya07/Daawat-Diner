@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Delete } from 'lucide-react';
 
 interface Props {
@@ -10,6 +10,18 @@ interface Props {
 }
 
 export default function NumberKeypad({ value, onChange, onClose, position, maxLength = 3 }: Props) {
+  // Prevent scrolling when keypad is open
+  useEffect(() => {
+    const preventDefault = (e: Event) => e.preventDefault();
+    document.addEventListener('wheel', preventDefault, { passive: false });
+    document.addEventListener('touchmove', preventDefault, { passive: false });
+    
+    return () => {
+      document.removeEventListener('wheel', preventDefault);
+      document.removeEventListener('touchmove', preventDefault);
+    };
+  }, []);
+
   const handleNumberClick = (num: string) => {
     if (maxLength && value.length >= maxLength) return;
     onChange(value + num);
@@ -21,6 +33,10 @@ export default function NumberKeypad({ value, onChange, onClose, position, maxLe
 
   const handleClear = () => {
     onChange('');
+  };
+
+  const handleEnter = () => {
+    onClose();
   };
 
   return (
@@ -61,10 +77,10 @@ export default function NumberKeypad({ value, onChange, onClose, position, maxLe
       {/* Bottom Row */}
       <div className="grid grid-cols-3 gap-2">
         <button
-          onClick={handleClear}
-          className="w-10 h-10 bg-[#BB4430] border border-[#BB4430] text-[#F3DFA2] rounded hover:bg-[#A03A28] transition-colors text-xs font-semibold"
+          onClick={handleBackspace}
+          className="w-10 h-10 bg-[#BB4430] border border-[#BB4430] text-[#F3DFA2] rounded hover:bg-[#A03A28] transition-colors flex items-center justify-center"
         >
-          CLR
+          <Delete className="w-4 h-4" />
         </button>
         <button
           onClick={() => handleNumberClick('0')}
@@ -73,10 +89,10 @@ export default function NumberKeypad({ value, onChange, onClose, position, maxLe
           0
         </button>
         <button
-          onClick={handleBackspace}
-          className="w-10 h-10 bg-[#BB4430] border border-[#BB4430] text-[#F3DFA2] rounded hover:bg-[#A03A28] transition-colors flex items-center justify-center"
+          onClick={handleEnter}
+          className="w-10 h-10 bg-[#157A6E] border border-[#157A6E] text-[#F3DFA2] rounded hover:bg-[#1A6B60] transition-colors text-xs font-semibold"
         >
-          <Delete className="w-4 h-4" />
+          Enter
         </button>
       </div>
     </div>

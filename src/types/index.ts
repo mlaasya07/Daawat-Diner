@@ -29,7 +29,7 @@ export interface Restaurant {
   cuisine: string[];
   phone?: string;
   website?: string;
-  menu: MenuItem[];
   coords: { lat: number; lng: number };
+  mapUrl: string;
   isStarred?: boolean;
 }

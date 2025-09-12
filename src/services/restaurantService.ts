@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { FormData, Restaurant, MenuItem } from '../types';
+import { FormData, Restaurant } from '../types';
 
 const GEOAPIFY_API_KEY = import.meta.env.VITE_GEOAPIFY_API_KEY || '708ec078b7ad4a1594fc32a91ee5ae52';
 const GEOAPIFY_BASE_URL = 'https://api.geoapify.com/v2/places';
@@ -11,96 +11,6 @@ const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 let currentSearchResults: Restaurant[] = [];
 let excludedRestaurantIds: Set<string> = new Set();
 let currentFormData: FormData | null = null;
-
-// Enhanced menu generation based on cuisine and restaurant characteristics
-const generateCuisineSpecificMenu = (cuisines: string[], restaurantName: string, priceLevel: number): MenuItem[] => {
-  const menu: MenuItem[] = [];
-  const basePrice = priceLevel * 80; // Base price multiplier
-  
-  cuisines.forEach(cuisine => {
-    const cuisineType = cuisine.toLowerCase();
-    
-    if (cuisineType.includes('indian') || cuisineType === 'punjabi' || cuisineType === 'north indian') {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Paneer Tikka', category: 'Starter', price: basePrice + 220, isVeg: true, ageSuitability: 'All', description: 'Grilled cottage cheese marinated in spices' },
-        { id: `${restaurantName}-${cuisine}-s2`, name: 'Chicken Tikka', category: 'Starter', price: basePrice + 280, isVeg: false, ageSuitability: 'All', description: 'Tender grilled chicken pieces' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Butter Chicken', category: 'Main Course', price: basePrice + 380, isVeg: false, ageSuitability: 'All', description: 'Creamy tomato-based chicken curry' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Dal Makhani', category: 'Main Course', price: basePrice + 280, isVeg: true, ageSuitability: 'All', description: 'Rich black lentils in cream' },
-        { id: `${restaurantName}-${cuisine}-m3`, name: 'Biryani', category: 'Main Course', price: basePrice + 320, isVeg: false, ageSuitability: 'All', description: 'Aromatic basmati rice with spiced meat' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Kingfisher Beer', category: 'Drinks', price: 180, isVeg: true, ageSuitability: 'Adult', isAlcoholic: true, description: 'Premium Indian lager' },
-        { id: `${restaurantName}-${cuisine}-d2`, name: 'Mango Lassi', category: 'Drinks', price: 120, isVeg: true, ageSuitability: 'Kid', description: 'Sweet mango yogurt drink' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Gulab Jamun', category: 'Dessert', price: 150, isVeg: true, ageSuitability: 'All', description: 'Sweet milk dumplings in syrup' }
-      );
-    }
-    
-    if (cuisineType.includes('south indian')) {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Medu Vada', category: 'Starter', price: basePrice + 100, isVeg: true, ageSuitability: 'All', description: 'Crispy lentil donuts with chutney' },
-        { id: `${restaurantName}-${cuisine}-s2`, name: 'Fish Fry', category: 'Starter', price: basePrice + 320, isVeg: false, ageSuitability: 'All', description: 'Spiced and fried fish pieces' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Masala Dosa', category: 'Main Course', price: basePrice + 180, isVeg: true, ageSuitability: 'All', description: 'Crispy crepe with spiced potato filling' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Sambar Rice', category: 'Main Course', price: basePrice + 160, isVeg: true, ageSuitability: 'All', description: 'Rice with lentil curry' },
-        { id: `${restaurantName}-${cuisine}-m3`, name: 'Fish Curry', category: 'Main Course', price: basePrice + 350, isVeg: false, ageSuitability: 'All', description: 'Traditional coconut fish curry' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Filter Coffee', category: 'Drinks', price: 60, isVeg: true, ageSuitability: 'All', description: 'Traditional South Indian coffee' },
-        { id: `${restaurantName}-${cuisine}-d2`, name: 'Tender Coconut', category: 'Drinks', price: 50, isVeg: true, ageSuitability: 'Kid', description: 'Fresh coconut water' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Payasam', category: 'Dessert', price: 120, isVeg: true, ageSuitability: 'All', description: 'Sweet rice pudding with nuts' }
-      );
-    }
-    
-    if (cuisineType.includes('chinese')) {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Spring Rolls', category: 'Starter', price: basePrice + 200, isVeg: true, ageSuitability: 'All', description: 'Crispy vegetable rolls' },
-        { id: `${restaurantName}-${cuisine}-s2`, name: 'Chicken Manchurian', category: 'Starter', price: basePrice + 280, isVeg: false, ageSuitability: 'All', description: 'Indo-Chinese chicken in tangy sauce' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Hakka Noodles', category: 'Main Course', price: basePrice + 250, isVeg: true, ageSuitability: 'All', description: 'Stir-fried noodles with vegetables' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Sweet & Sour Chicken', category: 'Main Course', price: basePrice + 320, isVeg: false, ageSuitability: 'All', description: 'Chicken in sweet and tangy sauce' },
-        { id: `${restaurantName}-${cuisine}-m3`, name: 'Fried Rice', category: 'Main Course', price: basePrice + 220, isVeg: false, ageSuitability: 'All', description: 'Wok-tossed rice with egg and vegetables' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Green Tea', category: 'Drinks', price: 80, isVeg: true, ageSuitability: 'All', description: 'Traditional Chinese green tea' },
-        { id: `${restaurantName}-${cuisine}-d2`, name: 'Fresh Lime Soda', category: 'Drinks', price: 100, isVeg: true, ageSuitability: 'Kid', description: 'Refreshing lime drink' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Date Pancake', category: 'Dessert', price: 180, isVeg: true, ageSuitability: 'All', description: 'Sweet Chinese-style pancake' }
-      );
-    }
-    
-    if (cuisineType.includes('italian')) {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Bruschetta', category: 'Starter', price: basePrice + 280, isVeg: true, ageSuitability: 'All', description: 'Toasted bread with fresh tomatoes' },
-        { id: `${restaurantName}-${cuisine}-s2`, name: 'Caesar Salad', category: 'Starter', price: basePrice + 320, isVeg: false, ageSuitability: 'All', description: 'Classic salad with parmesan' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Margherita Pizza', category: 'Main Course', price: basePrice + 420, isVeg: true, ageSuitability: 'All', description: 'Classic tomato and mozzarella pizza' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Chicken Alfredo', category: 'Main Course', price: basePrice + 480, isVeg: false, ageSuitability: 'All', description: 'Creamy pasta with grilled chicken' },
-        { id: `${restaurantName}-${cuisine}-m3`, name: 'Lasagna', category: 'Main Course', price: basePrice + 450, isVeg: false, ageSuitability: 'All', description: 'Layered pasta with meat sauce' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Italian Wine', category: 'Drinks', price: 400, isVeg: true, ageSuitability: 'Adult', isAlcoholic: true, description: 'House red wine' },
-        { id: `${restaurantName}-${cuisine}-d2`, name: 'Italian Soda', category: 'Drinks', price: 120, isVeg: true, ageSuitability: 'Kid', description: 'Flavored sparkling water' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Tiramisu', category: 'Dessert', price: 220, isVeg: true, ageSuitability: 'All', description: 'Classic coffee-flavored dessert' }
-      );
-    }
-    
-    if (cuisineType.includes('bengali')) {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Fish Fry', category: 'Starter', price: basePrice + 300, isVeg: false, ageSuitability: 'All', description: 'Bengali style fried fish' },
-        { id: `${restaurantName}-${cuisine}-s2`, name: 'Beguni', category: 'Starter', price: basePrice + 120, isVeg: true, ageSuitability: 'All', description: 'Fried eggplant fritters' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Machher Jhol', category: 'Main Course', price: basePrice + 380, isVeg: false, ageSuitability: 'All', description: 'Traditional Bengali fish curry' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Aloo Posto', category: 'Main Course', price: basePrice + 220, isVeg: true, ageSuitability: 'All', description: 'Potato curry with poppy seeds' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Cha', category: 'Drinks', price: 40, isVeg: true, ageSuitability: 'All', description: 'Bengali style tea' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Rasgulla', category: 'Dessert', price: 100, isVeg: true, ageSuitability: 'All', description: 'Spongy cottage cheese balls in syrup' }
-      );
-    }
-    
-    if (cuisineType.includes('thai')) {
-      menu.push(
-        { id: `${restaurantName}-${cuisine}-s1`, name: 'Tom Yum Soup', category: 'Starter', price: basePrice + 250, isVeg: false, ageSuitability: 'All', description: 'Spicy and sour Thai soup' },
-        { id: `${restaurantName}-${cuisine}-m1`, name: 'Pad Thai', category: 'Main Course', price: basePrice + 320, isVeg: false, ageSuitability: 'All', description: 'Stir-fried rice noodles' },
-        { id: `${restaurantName}-${cuisine}-m2`, name: 'Green Curry', category: 'Main Course', price: basePrice + 380, isVeg: false, ageSuitability: 'All', description: 'Coconut curry with herbs' },
-        { id: `${restaurantName}-${cuisine}-d1`, name: 'Thai Iced Tea', category: 'Drinks', price: 150, isVeg: true, ageSuitability: 'All', description: 'Sweet Thai tea with milk' },
-        { id: `${restaurantName}-${cuisine}-ds1`, name: 'Mango Sticky Rice', category: 'Dessert', price: 200, isVeg: true, ageSuitability: 'All', description: 'Sweet rice with fresh mango' }
-      );
-    }
-  });
-  
-  // Remove duplicates and limit to reasonable menu size
-  const uniqueMenu = menu.filter((item, index, self) => 
-    index === self.findIndex(t => t.name === item.name && t.category === item.category)
-  );
-  
-  return uniqueMenu.slice(0, 12); // Limit to 12 items per restaurant
-};
 
 const getCacheKey = (formData: FormData, offset: number = 0): string => {
   return `${formData.city}-${formData.area}-${formData.cuisines.join(',')}-${offset}`;
@@ -114,6 +24,18 @@ const isValidLocation = (address: string, targetCity: string, targetArea: string
   return addressLower.includes(cityLower) || addressLower.includes(areaLower);
 };
 
+const formatRating = (rating: number): number => {
+  return Math.round(rating * 10) / 10;
+};
+
+const getGoogleMapsUrl = (name: string, address: string, lat?: number, lng?: number): string => {
+  if (lat && lng) {
+    return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  }
+  const query = encodeURIComponent(`${name} ${address}`);
+  return `https://www.google.com/maps/search/?api=1&query=${query}`;
+};
+
 export const findRestaurants = async (formData: FormData): Promise<Restaurant[]> => {
   currentFormData = formData;
   excludedRestaurantIds.clear(); // Reset excluded IDs for new search
@@ -121,7 +43,7 @@ export const findRestaurants = async (formData: FormData): Promise<Restaurant[]>
   try {
     // Geocode the specific area within the city
     const locationQuery = `${formData.area}, ${formData.city}, India`;
-    const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationQuery)}&apiKey=${GEOAPIFY_API_KEY}&filter=countrycode:in`;
+    const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationQuery)}&apiKey=${GEOAPIFY_API_KEY}&filter=countrycode:in&limit=1`;
     const geocodeResponse = await axios.get(geocodeUrl);
     
     if (!geocodeResponse.data.features || geocodeResponse.data.features.length === 0) {
@@ -211,7 +133,7 @@ export const refreshRestaurants = async (): Promise<Restaurant[]> => {
     
     // Fetch new restaurants
     const locationQuery = `${currentFormData.area}, ${currentFormData.city}, India`;
-    const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationQuery)}&apiKey=${GEOAPIFY_API_KEY}&filter=countrycode:in`;
+    const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(locationQuery)}&apiKey=${GEOAPIFY_API_KEY}&filter=countrycode:in&limit=1`;
     const geocodeResponse = await axios.get(geocodeUrl);
     
     if (!geocodeResponse.data.features || geocodeResponse.data.features.length === 0) {
@@ -314,18 +236,21 @@ const transformToRestaurant = (place: any, cuisines: string[], formData: FormDat
     priceLevel = 1;
   }
   
+  // Format rating to one decimal place
+  const rating = props.rating ? formatRating(props.rating) : formatRating(3.8 + Math.random() * 1.2);
+  
   return {
     id: restaurantId,
     name: name,
     address: props.formatted || props.address_line1 || `${formData.area}, ${formData.city}`,
     distance: Math.round((props.distance || 1000) / 1000 * 10) / 10, // Convert to km
-    rating: props.rating || (3.8 + Math.random() * 1.2), // Random rating if not available
+    rating: rating,
     priceLevel: priceLevel,
     cuisine: cuisines, // Use the specific cuisine passed in
     phone: props.contact?.phone,
     website: props.contact?.website,
-    menu: generateCuisineSpecificMenu(cuisines, name, priceLevel),
     coords: { lat: props.lat, lng: props.lon },
+    mapUrl: getGoogleMapsUrl(name, props.formatted || props.address_line1 || `${formData.area}, ${formData.city}`, props.lat, props.lon),
     isStarred: false
   };
 };
@@ -362,11 +287,11 @@ const getFallbackRestaurants = (formData: FormData): Restaurant[] => {
     name: `${restaurant.name} - ${formData.area}`,
     address: `${formData.area}, ${formData.city}`,
     distance: 0.8 + (index * 0.3),
-    rating: 4.0 + (Math.random() * 1.0),
+    rating: formatRating(4.0 + (Math.random() * 1.0)),
     priceLevel: Math.ceil(Math.random() * 3),
     cuisine: [restaurant.cuisineType],
-    menu: generateCuisineSpecificMenu([restaurant.cuisineType], restaurant.name, Math.ceil(Math.random() * 3)),
     coords: { lat: 0, lng: 0 },
+    mapUrl: getGoogleMapsUrl(`${restaurant.name} - ${formData.area}`, `${formData.area}, ${formData.city}`),
     isStarred: false
   }));
   
