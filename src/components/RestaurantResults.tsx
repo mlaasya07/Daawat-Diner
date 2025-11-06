@@ -37,18 +37,20 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
     <div className="max-w-6xl mx-auto">
       {/* Header */}
       <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-6 mb-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2">
               Top 5 restaurants in {formData.location}
             </h2>
-            <div className="flex items-center space-x-6 text-[#157A6E] text-sm">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[#157A6E] text-xs sm:text-sm">
               <span>👥 {formData.numPeople} people</span>
               <span>📍 {formData.area}, {formData.city}</span>
-              <span>🍽️ {formData.cuisines.join(', ')}</span>
+              <span className="hidden sm:inline">🍽️ {formData.cuisines.join(', ')}</span>
+              <span className="sm:hidden">🍽️ {formData.cuisines.length} cuisines</span>
               <span>🥗 {formData.diet}</span>
               {formData.budget && (
-                <span>💰 ₹{formData.budget}/person (₹{totalBudget} total)</span>
+                <span className="hidden sm:inline">💰 ₹{formData.budget}/person (₹{totalBudget} total)</span>
+                <span className="sm:hidden">💰 ₹{formData.budget}/person</span>
               )}
               {starredCount > 0 && (
                 <span>⭐ {starredCount} starred</span>
@@ -60,7 +62,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
               </div>
             )}
           </div>
-          <div className="flex space-x-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 lg:flex-shrink-0">
             <button
               onClick={handleRefresh}
               disabled={allStarred || refreshing}
@@ -114,7 +116,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
           </button>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-4 sm:space-y-6 lg:space-y-8">
           {restaurants.map((restaurant) => (
             <RestaurantCard
               key={restaurant.id}

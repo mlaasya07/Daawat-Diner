@@ -41,6 +41,8 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   const cities = getCitiesArray();
   const areas = formData.city ? getAreasForCity(formData.city) : [];
 
+  // Check if device is mobile
+  const isMobile = window.innerWidth <= 768;
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -129,6 +131,9 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   };
 
   const showKeypad = (event: React.MouseEvent, field: string, index?: number) => {
+    // Don't show keypad on mobile devices
+    if (isMobile) return;
+    
     const rect = event.currentTarget.getBoundingClientRect();
     let currentValue = '';
     
@@ -178,6 +183,23 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
     });
   };
 
+  // Handle direct input changes for mobile
+  const handleDirectInputChange = (field: string, value: string, index?: number) => {
+    // Only allow numbers
+    const numericValue = value.replace(/[^0-9]/g, '');
+    const numValue = parseInt(numericValue) || 0;
+    
+    if (field === 'numPeople') {
+      handleNumPeopleChange(Math.max(1, numValue));
+    } else if (field === 'age' && index !== undefined) {
+      handleAgeChange(index, Math.max(1, Math.min(120, numValue)));
+    } else if (field === 'budget') {
+      setFormData({
+        ...formData,
+        budget: numValue > 0 ? numValue : undefined
+      });
+    }
+  };
   return (
     <div className="max-w-4xl mx-auto">
       <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-8 shadow-2xl">
@@ -197,13 +219,25 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               <Users className="w-5 h-5 text-[#BB4430]" />
               <span>Number of People *</span>
             </label>
-            <button
-              type="button"
-              onClick={(e) => showKeypad(e, 'numPeople')}
-              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
-            >
-              {formData.numPeople}
-            </button>
+            {isMobile ? (
+              <input
+                type="number"
+                min="1"
+                max="20"
+                value={formData.numPeople}
+                onChange={(e) => handleDirectInputChange('numPeople', e.target.value)}
+                className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
+                placeholder="Enter number of people"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => showKeypad(e, 'numPeople')}
+                className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
+              >
+                {formData.numPeople}
+              </button>
+            )}
             {errors.numPeople && (
               <p className="text-red-400 text-sm mt-1">{errors.numPeople}</p>
             )}
@@ -221,13 +255,25 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
                   <label className="text-sm text-[#157A6E] mb-1 block">
                     Person {index + 1}
                   </label>
-                  <button
-                    type="button"
-                    onClick={(e) => showKeypad(e, 'age', index)}
-                    className="w-full p-2 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors hover:border-[#BB4430]"
-                  >
-                    {age}
-                  </button>
+                  {isMobile ? (
+                    <input
+                      type="number"
+                      min="1"
+                      max="120"
+                      value={age}
+                      onChange={(e) => handleDirectInputChange('age', e.target.value, index)}
+                      className="w-full p-2 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-center"
+                      placeholder="Age"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => showKeypad(e, 'age', index)}
+                      className="w-full p-2 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors hover:border-[#BB4430]"
+                    >
+                      {age}
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -292,13 +338,24 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               <DollarSign className="w-5 h-5 text-[#BB4430]" />
               <span>Budget per Person (₹) (Optional)</span>
             </label>
-            <button
-              type="button"
-              onClick={(e) => showKeypad(e, 'budget')}
-              className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
-            >
-              {formData.budget || 'Enter budget...'}
-            </button>
+            {isMobile ? (
+              <input
+                type="number"
+                min="0"
+                value={formData.budget || ''}
+                onChange={(e) => handleDirectInputChange('budget', e.target.value)}
+                className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
+                placeholder="Enter budget per person"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={(e) => showKeypad(e, 'budget')}
+                className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
+              >
+                {formData.budget || 'Enter budget...'}
+              </button>
+            )}
             {errors.budget && (
               <p className="text-red-400 text-sm mt-1">{errors.budget}</p>
             )}
@@ -371,7 +428,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
       </div>
 
       {/* Number Keypad */}
-      {keypadState.show && (
+      {keypadState.show && !isMobile && (
         <NumberKeypad
           value={keypadState.value}
           onChange={handleKeypadChange}
