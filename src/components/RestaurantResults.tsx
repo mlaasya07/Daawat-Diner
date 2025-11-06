@@ -49,8 +49,10 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
               <span className="sm:hidden">🍽️ {formData.cuisines.length} cuisines</span>
               <span>🥗 {formData.diet}</span>
               {formData.budget && (
-                <span className="hidden sm:inline">💰 ₹{formData.budget}/person (₹{totalBudget} total)</span>
-                <span className="sm:hidden">💰 ₹{formData.budget}/person</span>
+                <>
+                  <span className="hidden sm:inline">💰 ₹{formData.budget}/person (₹{totalBudget} total)</span>
+                  <span className="sm:hidden">💰 ₹{formData.budget}/person</span>
+                </>
               )}
               {starredCount > 0 && (
                 <span>⭐ {starredCount} starred</span>
