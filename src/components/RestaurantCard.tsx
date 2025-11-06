@@ -17,9 +17,9 @@ export default function RestaurantCard({ restaurant, formData, onToggleStar }: P
       <div className="p-6">
         <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#F3DFA2] mb-2 break-words">{restaurant.name}</h3>
-            <p className="text-[#157A6E] mb-2 text-sm sm:text-base break-words">{restaurant.address}</p>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-[#F3DFA2] mb-2 break-words no-select">{restaurant.name}</h3>
+            <p className="text-[#157A6E] mb-2 text-sm sm:text-base break-words no-select">{restaurant.address}</p>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm no-select">
               <div className="flex items-center space-x-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-current" />
                 <span className="text-[#F3DFA2]">{restaurant.rating}</span>

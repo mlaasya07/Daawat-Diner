@@ -39,10 +39,10 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
       <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-6 mb-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2">
-              Top 5 restaurants in {formData.location}
+            <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2 no-select">
+              Top 5 restaurants in {formData.area}, {formData.city}
             </h2>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[#157A6E] text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-[#157A6E] text-xs sm:text-sm no-select">
               <span>👥 {formData.numPeople} people</span>
               <span>📍 {formData.area}, {formData.city}</span>
               <span className="hidden sm:inline">🍽️ {formData.cuisines.join(', ')}</span>
@@ -57,7 +57,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
               )}
             </div>
             {hasMinors && (
-              <div className="mt-2 text-yellow-400 text-sm">
+              <div className="mt-2 text-yellow-400 text-sm no-select">
                 ⚠️ Group includes minors - alcoholic beverages will be filtered out
               </div>
             )}
@@ -91,7 +91,7 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
         {allStarred && (
           <div className="mt-4 p-3 bg-yellow-900 border border-yellow-600 rounded-lg flex items-center space-x-2">
             <AlertTriangle className="w-5 h-5 text-yellow-400" />
-            <span className="text-yellow-200 text-sm">
+            <span className="text-orange-200 text-sm no-select">
               All searches are starred. Try removing one or more to refresh.
             </span>
           </div>
@@ -102,10 +102,10 @@ export default function RestaurantResults({ restaurants, formData, onNewSearch, 
       {restaurants.length === 0 ? (
         <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-12 text-center">
           <MapPin className="w-16 h-16 text-[#157A6E] mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-[#F3DFA2] mb-2">
+          <h3 className="text-xl font-bold text-[#F3DFA2] mb-2 no-select">
             No restaurants found
           </h3>
-          <p className="text-[#157A6E] mb-6">
+          <p className="text-[#157A6E] mb-6 no-select">
             No nearby restaurants match your criteria. Try adjusting your preferences or location.
           </p>
           <button

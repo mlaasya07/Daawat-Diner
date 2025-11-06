@@ -204,10 +204,10 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
     <div className="max-w-4xl mx-auto">
       <div className="bg-[#231F20] border-2 border-[#157A6E] rounded-lg p-8 shadow-2xl">
         <div className="text-center mb-8">
-          <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2">
+          <h2 className="text-2xl font-bold text-[#F3DFA2] mb-2 no-select">
             Find Your Perfect Dining Experience
           </h2>
-          <p className="text-[#157A6E]">
+          <p className="text-[#157A6E] no-select">
             Tell us about your group and preferences, and we'll suggest the best restaurants
           </p>
         </div>
@@ -215,7 +215,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Number of People */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <Users className="w-5 h-5 text-[#BB4430]" />
               <span>Number of People *</span>
             </label>
@@ -239,20 +239,20 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               </button>
             )}
             {errors.numPeople && (
-              <p className="text-red-400 text-sm mt-1">{errors.numPeople}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.numPeople}</p>
             )}
           </div>
 
           {/* Ages */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <Calendar className="w-5 h-5 text-[#BB4430]" />
               <span>Ages (for drink recommendations) *</span>
             </label>
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {formData.ages.map((age, index) => (
                 <div key={index}>
-                  <label className="text-sm text-[#157A6E] mb-1 block">
+                  <label className="text-sm text-[#157A6E] mb-1 block no-select">
                     Person {index + 1}
                   </label>
                   {isMobile ? (
@@ -278,13 +278,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               ))}
             </div>
             {errors.ages && (
-              <p className="text-red-400 text-sm mt-1">{errors.ages}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.ages}</p>
             )}
           </div>
 
           {/* Cuisine Preferences */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <Utensils className="w-5 h-5 text-[#BB4430]" />
               <span>Cuisine Preferences *</span>
             </label>
@@ -305,13 +305,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               ))}
             </div>
             {errors.cuisines && (
-              <p className="text-red-400 text-sm mt-1">{errors.cuisines}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.cuisines}</p>
             )}
           </div>
 
           {/* Dietary Preference */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <span>Dietary Preference *</span>
             </label>
             <div className="flex space-x-4">
@@ -334,7 +334,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
 
           {/* Budget */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <DollarSign className="w-5 h-5 text-[#BB4430]" />
               <span>Budget per Person (₹) (Optional)</span>
             </label>
@@ -357,13 +357,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               </button>
             )}
             {errors.budget && (
-              <p className="text-red-400 text-sm mt-1">{errors.budget}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.budget}</p>
             )}
           </div>
 
           {/* City Selection */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <MapPin className="w-5 h-5 text-[#BB4430]" />
               <span>City *</span>
             </label>
@@ -378,13 +378,13 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               ))}
             </select>
             {errors.city && (
-              <p className="text-red-400 text-sm mt-1">{errors.city}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.city}</p>
             )}
           </div>
 
           {/* Area Selection */}
           <div>
-            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3">
+            <label className="flex items-center space-x-2 text-[#F3DFA2] font-semibold mb-3 no-select">
               <MapPin className="w-5 h-5 text-[#BB4430]" />
               <span>Area *</span>
             </label>
@@ -402,7 +402,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
               ))}
             </select>
             {errors.area && (
-              <p className="text-red-400 text-sm mt-1">{errors.area}</p>
+              <p className="text-red-400 text-sm mt-1 no-select">{errors.area}</p>
             )}
           </div>
 

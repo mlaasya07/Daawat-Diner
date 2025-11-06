@@ -50,7 +50,7 @@ export default function NumberKeypad({ value, onChange, onClose, position, maxLe
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <div className="bg-[#157A6E] text-[#F3DFA2] px-3 py-1 rounded text-sm font-mono min-w-[60px] text-center">
+        <div className="bg-[#157A6E] text-[#F3DFA2] px-3 py-1 rounded text-sm font-mono min-w-[60px] text-center no-select">
           {value || '0'}
         </div>
         <button
