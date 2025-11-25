@@ -16,8 +16,8 @@ const cuisineOptions = [
 
 export default function RestaurantForm({ onSearch, loading }: Props) {
   const [formData, setFormData] = useState<FormData>({
-    numPeople: 1,
-    ages: [25],
+    numPeople: 0,
+    ages: [],
     cuisines: [],
     diet: 'Both',
     budget: undefined,
@@ -46,7 +46,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (formData.numPeople < 1) {
+    if (formData.numPeople < 1 || formData.numPeople === 0) {
       newErrors.numPeople = 'Number of people must be at least 1';
     }
 
@@ -86,6 +86,16 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   };
 
   const handleNumPeopleChange = (value: number) => {
+    // If value is 0, reset ages array
+    if (value === 0) {
+      setFormData({
+        ...formData,
+        numPeople: 0,
+        ages: []
+      });
+      return;
+    }
+    
     const newAges = [...formData.ages];
     if (value > formData.numPeople) {
       for (let i = formData.numPeople; i < value; i++) {
@@ -165,7 +175,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
     const numValue = parseInt(keypadState.value) || 0;
     
     if (keypadState.field === 'numPeople') {
-      handleNumPeopleChange(Math.max(1, numValue));
+      handleNumPeopleChange(numValue);
     } else if (keypadState.field === 'age' && keypadState.index !== undefined) {
       handleAgeChange(keypadState.index, Math.max(1, Math.min(120, numValue)));
     } else if (keypadState.field === 'budget') {
@@ -187,10 +197,10 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
   const handleDirectInputChange = (field: string, value: string, index?: number) => {
     // Only allow numbers
     const numericValue = value.replace(/[^0-9]/g, '');
-    const numValue = parseInt(numericValue) || 0;
+    const numValue = numericValue === '' ? 0 : parseInt(numericValue);
     
     if (field === 'numPeople') {
-      handleNumPeopleChange(Math.max(1, numValue));
+      handleNumPeopleChange(numValue);
     } else if (field === 'age' && index !== undefined) {
       handleAgeChange(index, Math.max(1, Math.min(120, numValue)));
     } else if (field === 'budget') {
@@ -222,12 +232,12 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
             {isMobile ? (
               <input
                 type="number"
-                min="1"
+                min="0"
                 max="20"
                 value={formData.numPeople}
                 onChange={(e) => handleDirectInputChange('numPeople', e.target.value)}
                 className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors"
-                placeholder="Enter number of people"
+                placeholder="0"
               />
             ) : (
               <button
@@ -235,7 +245,7 @@ export default function RestaurantForm({ onSearch, loading }: Props) {
                 onClick={(e) => showKeypad(e, 'numPeople')}
                 className="w-full p-3 bg-[#2A2627] border border-[#157A6E] rounded-lg text-[#F3DFA2] focus:border-[#BB4430] focus:ring-2 focus:ring-[#BB4430] focus:ring-opacity-50 transition-colors text-left hover:border-[#BB4430]"
               >
-                {formData.numPeople}
+                {formData.numPeople || "0"}
               </button>
             )}
             {errors.numPeople && (
