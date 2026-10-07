@@ -1,23 +1,23 @@
-# دعوت Diner
+# Daawat Diner
 
 **Discover the perfect dine-in experience across India**
 
-دعوت Diner is a sophisticated restaurant discovery application that helps users find the perfect dining experience across major Indian cities. The app features a retro aesthetic with Arabic-inspired branding and provides intelligent restaurant recommendations based on user preferences.
+Daawat  Diner is a sophisticated restaurant discovery application that helps users find the perfect dining experience across major Indian cities. The app features a retro aesthetic with Arabic-inspired branding and provides intelligent restaurant recommendations based on user preferences.
 
-## ✨ Features
+## Features
 
-- **🏙️ City-Area Based Search** - Search across 12+ major Indian cities with 15+ areas each
-- **🍽️ Top 5 Restaurant Results** - Get exactly 5 curated restaurant recommendations per search
-- **⭐ Smart Star System** - Star your favorite restaurants and refresh to get new options while keeping starred ones
-- **🔢 Custom Number Keypad** - Hovering number keypad for desktop with brand colors (mobile uses native keyboard)
-- **🗺️ Real-time Location Data** - Accurate restaurant locations with direct Google Maps integration
-- **🍜 Cuisine-Specific Filtering** - Choose from 11 different cuisines for targeted recommendations
-- **👶 Age-Based Recommendations** - Considers group ages for appropriate dining suggestions
-- **💰 Budget Calculations** - Filter restaurants based on your budget per person
-- **😏 Satirical Error Messages** - Humorous messages when search options are exhausted
-- **📱 Fully Responsive** - Perfect experience on mobile, tablet, and desktop devices
+- **City-Area Based Search** - Search across 12+ major Indian cities with 15+ areas each
+- **Top 5 Restaurant Results** - Get exactly 5 curated restaurant recommendations per search
+- **Smart Star System** - Star your favorite restaurants and refresh to get new options while keeping starred ones
+- **Custom Number Keypad** - Hovering number keypad for desktop with brand colors (mobile uses native keyboard)
+- **Real-time Location Data** - Accurate restaurant locations with direct Google Maps integration
+- **Cuisine-Specific Filtering** - Choose from 11 different cuisines for targeted recommendations
+- **Age-Based Recommendations** - Considers group ages for appropriate dining suggestions
+- **Budget Calculations** - Filter restaurants based on your budget per person
+- **Satirical Error Messages** - Humorous messages when search options are exhausted
+- **Fully Responsive** - Perfect experience on mobile, tablet, and desktop devices
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: React 18.3.1 with TypeScript
 - **Build Tool**: Vite for fast development and optimized builds
@@ -26,7 +26,7 @@
 - **API**: Geoapify for accurate location data and restaurant search
 - **Maps**: Google Maps integration for navigation
 
-## 🌍 Supported Cities & Areas
+## Supported Cities & Areas
 
 ### Major Cities (12+)
 - **Mumbai**: Bandra, Andheri, Juhu, Powai, Colaba, Fort, Worli, Lower Parel, and more
@@ -42,11 +42,11 @@
 - **Lucknow**: Hazratganj, Gomti Nagar, Indira Nagar, Aliganj, and more
 - **Kanpur**: Civil Lines, Mall Road, Swaroop Nagar, Kidwai Nagar, and more
 
-## 🍽️ Supported Cuisines
+## Supported Cuisines
 
 Indian, Chinese, Italian, South Indian, Continental, Punjabi, Bengali, Rajasthani, Gujarati, Thai, Mexican
 
-## 🎨 Design System
+## Design System
 
 ### Color Palette
 - **Primary Background**: #231F20 (Dark charcoal)
@@ -60,7 +60,7 @@ Indian, Chinese, Italian, South Indian, Continental, Punjabi, Bengali, Rajasthan
 - Responsive text sizes for all devices
 - Arabic-inspired branding elements
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Node.js 16+ 
@@ -96,21 +96,21 @@ npm run build
 npm run preview
 ```
 
-## 📱 Mobile Experience
+## Mobile Experience
 
 - **Native Input**: Uses device keyboard for number inputs on mobile
 - **Touch Optimized**: All buttons and interactions are touch-friendly
 - **Responsive Layout**: Adapts perfectly to all screen sizes
 - **Fast Performance**: Optimized for mobile networks
 
-## 🔧 API Integration
+## API Integration
 
 - **Geoapify API**: For accurate restaurant data and location services
 - **Google Maps**: For navigation and directions
 - **Efficient Caching**: 10-minute cache for optimal performance
 - **Fallback System**: Accurate sample data when API is unavailable
 
-## 🎯 Key Algorithms
+## Key Algorithms
 
 ### Restaurant Search
 - Precise geocoding for exact area targeting
@@ -124,7 +124,7 @@ npm run preview
 - Non-repetitive results across searches
 - Satirical messages when options exhausted
 
-## 🤝 Contributing
+## Contributing
 
 We welcome contributions to دعوت Diner! Here's how you can help:
 
@@ -140,7 +140,7 @@ We welcome contributions to دعوت Diner! Here's how you can help:
 - Update documentation as needed
 - Ensure responsive design for all screen sizes
 
-## 📄 Project Structure
+## Project Structure
 
 ```
 src/
@@ -159,7 +159,7 @@ src/
 └── main.tsx           # Application entry point
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 - **No restaurants found**: Try different cuisine combinations or areas
@@ -171,7 +171,7 @@ src/
 - Ensure JavaScript is enabled
 - Clear browser cache if experiencing issues
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - User authentication and saved preferences
 - Restaurant reviews and photos integration
@@ -181,7 +181,7 @@ src/
 - Offline mode support
 - Push notifications for deals and offers
 
-## 📊 Performance
+## Performance
 
 - **Fast Loading**: Optimized bundle size with code splitting
 - **Efficient API Usage**: Smart caching and request optimization
@@ -190,6 +190,6 @@ src/
 
 ---
 
-**Made by Laasya** ❤️
+**Made by Laasya** ❤️ @mlaasya07
 
 *Bringing India's diverse culinary landscape to your fingertips with دعوت Diner*
